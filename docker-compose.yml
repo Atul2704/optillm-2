@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    container_name: optillm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: optillm
+      POSTGRES_PASSWORD: optillm
+      POSTGRES_DB: optillm
+    ports:
+      - "5433:5432"
+    volumes:
+      - optillm_pgdata:/var/lib/postgresql/data
+
+volumes:
+  optillm_pgdata:
+

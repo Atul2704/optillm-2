@@ -1,0 +1,15 @@
+import { NextResponse } from "next/server";
+import { getProviderHealthSnapshot } from "@/lib/ai";
+import { getCurrentUser } from "@/lib/auth";
+
+export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  return NextResponse.json({
+    status: "ok",
+    providers: getProviderHealthSnapshot(),
+    at: new Date().toISOString(),
+  });
+}
+
