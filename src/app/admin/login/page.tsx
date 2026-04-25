@@ -1,38 +1,38 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { LoginForm } from "@/app/login/ui/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminLoginForm } from "@/app/admin/login/ui/AdminLoginForm";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
     <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Sign in to access dashboard and analytics.</CardDescription>
+          <CardTitle>Admin Login</CardTitle>
+          <CardDescription>Sign in with an admin account to access admin console.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-1">
             <Link
-              className="rounded-lg bg-white/10 px-3 py-2 text-center text-sm font-medium text-white"
+              className="rounded-lg px-3 py-2 text-center text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white"
               href="/login"
             >
               User Login
             </Link>
             <Link
-              className="rounded-lg px-3 py-2 text-center text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white"
+              className="rounded-lg bg-white/10 px-3 py-2 text-center text-sm font-medium text-white"
               href="/admin/login"
             >
               Admin Login
             </Link>
           </div>
           <Suspense fallback={null}>
-            <LoginForm />
+            <AdminLoginForm />
           </Suspense>
           <div className="text-sm text-white/70">
-            Don’t have an account?{" "}
-            <Link className="text-white hover:underline" href="/register">
-              Create one
+            Not an admin?{" "}
+            <Link className="text-white hover:underline" href="/login">
+              User login
             </Link>
             .
           </div>
@@ -41,4 +41,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

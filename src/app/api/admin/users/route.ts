@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin";
+import { getUserRole } from "@/lib/admin";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -24,15 +25,18 @@ export async function GET() {
     take: 500,
   });
 
-  return NextResponse.json({
-    users: users.map((u) => ({
+  const usersWithRole = await Promise.all(
+    users.map(async (u) => ({
       id: u.id,
       email: u.email,
+      role: await getUserRole(u.email),
       createdAt: u.createdAt,
       monthlyBudgetUsd: u.monthlyBudgetUsd != null ? Number(u.monthlyBudgetUsd) : null,
       monthlyTokenLimit: u.monthlyTokenLimit ?? null,
       prompts: u._count.prompts,
     })),
-  });
+  );
+
+  return NextResponse.json({ users: usersWithRole });
 }
 

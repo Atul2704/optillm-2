@@ -5,10 +5,12 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 type AdminUserRow = {
   id: string;
   email: string;
+  role: "ADMIN" | "USER";
   createdAt: string;
   monthlyBudgetUsd: number | null;
   monthlyTokenLimit: number | null;
@@ -552,7 +554,12 @@ export default function AdminSettingsPage() {
               className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-12 md:items-end"
             >
               <div className="md:col-span-4">
-                <div className="text-sm font-medium text-white/90">{u.email}</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-medium text-white/90">{u.email}</div>
+                  <Badge variant="outline" className={u.role === "ADMIN" ? "border-cyan-400/40 text-cyan-300" : ""}>
+                    {u.role}
+                  </Badge>
+                </div>
                 <div className="text-xs text-white/60">
                   prompts: {u.prompts} • created: {new Date(u.createdAt).toLocaleString()}
                 </div>

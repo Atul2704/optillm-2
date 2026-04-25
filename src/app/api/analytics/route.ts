@@ -168,6 +168,7 @@ export async function GET(request: NextRequest) {
     provider: p.provider,
     tokens: p.tokens,
     estimatedCostUsd: Number(p.estimatedCost),
+    gpt4oCostUsd: estimateCostUsd("GPT_4O", p.tokens),
     strategy: p.strategy,
     cacheHit: p.cacheHit,
     fallbackReason: p.fallbackReason,

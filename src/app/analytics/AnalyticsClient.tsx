@@ -61,6 +61,7 @@ type Analytics = {
     provider: string | null;
     tokens: number;
     estimatedCostUsd: number;
+    gpt4oCostUsd: number;
     strategy: string;
     cacheHit: boolean;
     fallbackReason: string | null;
@@ -113,6 +114,23 @@ export function AnalyticsClient() {
   });
   const [endDate, setEndDate] = React.useState(() => new Date().toISOString().split('T')[0]);
   const [exporting, setExporting] = React.useState<string | null>(null);
+
+  const costSeries = React.useMemo(() => {
+    const events = (data?.recentEvents ?? []).slice().reverse();
+    if (events.length < 3) return (data?.savingsSeries ?? []).slice(-30);
+    return events.slice(-30).map((e, idx) => ({
+      day: `${String(idx + 1).padStart(2, "0")} ${new Date(e.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+      actual: e.estimatedCostUsd,
+      gpt4o: e.gpt4oCostUsd,
+      savings: Math.max(0, e.gpt4oCostUsd - e.estimatedCostUsd),
+      prompts: 1,
+      tokens: e.tokens,
+      avgResponseTime: 0,
+    }));
+  }, [data]);
 
   function toStartOfDayIso(dateStr: string) {
     const d = new Date(`${dateStr}T00:00:00`);
@@ -457,7 +475,7 @@ export function AnalyticsClient() {
             <CardDescription>Actual vs GPT‑4o baseline (recent)</CardDescription>
           </CardHeader>
           <CardContent className="h-72">
-            <CostComparisonLine data={(data?.savingsSeries ?? []).slice(-30)} />
+            <CostComparisonLine data={costSeries} />
           </CardContent>
         </Card>
       </div>

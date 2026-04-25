@@ -53,6 +53,19 @@ type Analytics = {
   totalSavingsUsd: number;
   totalSavingsPercent: number;
   savingsSeries: { day: string; actual: number; gpt4o: number; savings: number }[];
+  recentEvents?: {
+    createdAt: string;
+    promptText: string;
+    modelUsed: string;
+    complexity: string;
+    provider: string | null;
+    tokens: number;
+    estimatedCostUsd: number;
+    gpt4oCostUsd: number;
+    strategy: string;
+    cacheHit: boolean;
+    fallbackReason: string | null;
+  }[];
 };
 
 type MeResponse = {
@@ -110,6 +123,20 @@ export function DashboardClient() {
   const [groupedRecords, setGroupedRecords] = React.useState<MyRecordsResponse["groupedRecords"]>([]);
   const [myTotals, setMyTotals] = React.useState<{ prompts: number; tokens: number; costUsd: number } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+
+  const optimizationSeries = React.useMemo(() => {
+    const events = (analytics?.recentEvents ?? []).slice().reverse();
+    if (events.length < 3) return analytics?.savingsSeries ?? [];
+    return events.slice(-30).map((e, idx) => ({
+      day: `${String(idx + 1).padStart(2, "0")} ${new Date(e.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+      actual: e.estimatedCostUsd,
+      gpt4o: e.gpt4oCostUsd,
+      savings: Math.max(0, e.gpt4oCostUsd - e.estimatedCostUsd),
+    }));
+  }, [analytics]);
 
   async function refreshAnalytics() {
     const res = await fetch("/api/analytics", { cache: "no-store" });
@@ -321,10 +348,27 @@ export function DashboardClient() {
                 </div>
               </div>
             </div>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-3">
+              <div className="text-xs text-white/70">Optimization impact</div>
+              <div className="mt-1 text-sm">
+                Before optimization:{" "}
+                <span className="font-semibold">{analytics ? formatUsd(analytics.totalGpt4oCostUsd) : "—"}</span>
+              </div>
+              <div className="mt-1 text-sm">
+                After optimization:{" "}
+                <span className="font-semibold">{analytics ? formatUsd(analytics.totalActualCostUsd) : "—"}</span>
+              </div>
+              <div className="mt-1 text-sm text-emerald-200">
+                We reduced cost by{" "}
+                <span className="font-semibold">
+                  {analytics ? `${Math.round(analytics.totalSavingsPercent)}%` : "—"}
+                </span>
+              </div>
+            </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
               <div className="text-xs text-white/60">Savings over time (recent)</div>
               <div className="mt-2 h-40">
-                <SavingsAreaChart data={analytics?.savingsSeries ?? []} />
+                <SavingsAreaChart data={optimizationSeries} />
               </div>
             </div>
           </CardContent>
@@ -438,6 +482,32 @@ export function DashboardClient() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Request logs</CardTitle>
+          <CardDescription>Recent optimized requests and model choices</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {(analytics?.recentEvents ?? []).slice(0, 12).map((evt, idx) => (
+            <div key={`${evt.createdAt}-${idx}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-medium line-clamp-1">{evt.promptText}</div>
+                <div className="text-xs text-white/60">{new Date(evt.createdAt).toLocaleTimeString()}</div>
+              </div>
+              <div className="mt-1 text-xs text-white/60">
+                {evt.modelUsed} • {evt.complexity} • {evt.tokens} tokens • {formatUsd(evt.estimatedCostUsd)} •{" "}
+                {evt.strategy}
+              </div>
+            </div>
+          ))}
+          {(analytics?.recentEvents?.length ?? 0) === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/15 bg-white/5 p-3 text-white/60">
+              No request logs yet. Submit prompts to populate optimization logs.
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
     </div>
   );
 }

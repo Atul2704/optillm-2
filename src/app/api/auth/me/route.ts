@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { getUserRole } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,11 +8,13 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
+    const role = await getUserRole(user.email);
 
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
+        role,
       },
     });
   } catch (error) {

@@ -8,7 +8,7 @@ export default function RegisterPage() {
       <Card>
         <CardHeader>
           <CardTitle>Create account</CardTitle>
-          <CardDescription>Email + password (demo auth).</CardDescription>
+          <CardDescription>Set up your profile and secure login details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <RegisterForm />

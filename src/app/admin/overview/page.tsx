@@ -51,7 +51,7 @@ export default function AdminOverviewPage() {
     try {
       const [h, a, t] = await Promise.all([
         fetch("/api/health", { cache: "no-store" }),
-        fetch("/api/analytics", { cache: "no-store" }),
+        fetch("/api/analytics?scope=global", { cache: "no-store" }),
         fetch("/api/admin/top-users", { cache: "no-store" }),
       ]);
       const hj = await h.json();

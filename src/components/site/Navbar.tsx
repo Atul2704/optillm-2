@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AuthButtons } from "@/components/site/AuthButtons";
+import { AdminNavLink } from "@/components/site/AdminNavLink";
 
 export function Navbar() {
   return (
@@ -28,9 +29,7 @@ export function Navbar() {
           <Link className="rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white" href="/analytics">
             Analytics
           </Link>
-          <Link className="rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white" href="/admin/overview">
-            Admin
-          </Link>
+          <AdminNavLink />
         </nav>
 
         <div className="flex items-center gap-2">

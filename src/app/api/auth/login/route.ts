@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashPassword, verifyPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
+import { verifyPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const LoginSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(8),
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+    const payload = await req.json().catch(() => null);
+    const parsed = LoginSchema.safeParse(payload);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid email or password format" }, { status: 400 });
     }
+    const { email, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase();
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user || !user.passwordHash) {

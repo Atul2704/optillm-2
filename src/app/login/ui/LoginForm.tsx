@@ -16,11 +16,26 @@ export function LoginForm() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
+  const [issues, setIssues] = React.useState<string[]>([]);
+
+  function validateClient() {
+    const emailTrimmed = email.trim();
+    if (!emailTrimmed.includes("@")) return "Enter a valid email";
+    if (password.length < 8) return "Password must be at least 8 characters";
+    return null;
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setIssues([]);
+    const clientError = validateClient();
+    if (clientError) {
+      setError(clientError);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -33,6 +48,14 @@ export function LoginForm() {
       };
       if (!res.ok) {
         setError(json?.error ?? "Login failed");
+        const parsedIssues = Array.isArray((json as { issues?: unknown[] }).issues)
+          ? ((json as { issues?: { path?: (string | number)[]; message?: string }[] }).issues ?? [])
+              .map((i) =>
+                i?.message ? `${Array.isArray(i.path) && i.path.length ? `${String(i.path[0])}: ` : ""}${i.message}` : null,
+              )
+              .filter(Boolean)
+          : [];
+        setIssues(parsedIssues as string[]);
         return;
       }
       const userText = json?.user ? `${json.user.email}` : email;
@@ -55,18 +78,22 @@ export function LoginForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full opacity-50 cursor-not-allowed"
-          disabled
+          className="w-full"
+          onClick={() => {
+            window.location.href = `/api/auth/oauth/google?next=${encodeURIComponent(next)}`;
+          }}
         >
-          Continue with Google (Coming Soon)
+          Continue with Google
         </Button>
         <Button
           type="button"
           variant="outline"
-          className="w-full opacity-50 cursor-not-allowed"
-          disabled
+          className="w-full"
+          onClick={() => {
+            window.location.href = `/api/auth/oauth/github?next=${encodeURIComponent(next)}`;
+          }}
         >
-          Continue with GitHub (Coming Soon)
+          Continue with GitHub
         </Button>
       </div>
 
@@ -96,8 +123,15 @@ export function LoginForm() {
           autoComplete="current-password"
         />
         {error ? <div className="text-sm text-red-300">{error}</div> : null}
+        {issues.length > 0 ? (
+          <div className="rounded-md border border-red-400/30 bg-red-500/10 p-2 text-xs text-red-200">
+            {issues.map((msg, idx) => (
+              <div key={`${msg}-${idx}`}>- {msg}</div>
+            ))}
+          </div>
+        ) : null}
         {success ? <div className="text-sm text-emerald-300">{success}</div> : null}
-        <Button className="w-full" type="submit" disabled={loading || !email.trim() || !password}>
+        <Button className="w-full" type="submit" disabled={loading || !email.trim() || password.length < 8}>
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>
